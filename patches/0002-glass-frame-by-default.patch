@@ -1,0 +1,14 @@
+diff --git a/ui/base/ui_base_features.cc b/ui/base/ui_base_features.cc
+index 75d95b1..df6b2f8 100644
+--- a/ui/base/ui_base_features.cc
++++ b/ui/base/ui_base_features.cc
+@@ -500,7 +500,8 @@ BASE_FEATURE_PARAM(int,
+ 
+ BASE_FEATURE(kDesktopGlowUp, base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+-BASE_FEATURE(kGlassFrame, base::FEATURE_DISABLED_BY_DEFAULT);
++// Paper: the liquid-glass window frame is the backdrop for all of its chrome.
++BASE_FEATURE(kGlassFrame, base::FEATURE_ENABLED_BY_DEFAULT);
+ BASE_FEATURE_PARAM(bool, kGlassExpandOnHoverEnabled, &kGlassFrame, true);
+ 
+ BASE_FEATURE(kRoundedIcons, base::FEATURE_DISABLED_BY_DEFAULT);

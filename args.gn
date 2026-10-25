@@ -1,0 +1,17 @@
+# Paper dev build. Copied to $CHROMIUM_SRC/out/Paper/args.gn by scripts/build.sh.
+target_cpu = "arm64"
+is_debug = false
+is_component_build = true
+symbol_level = 0
+blink_symbol_level = 0
+v8_symbol_level = 0
+enable_nacl = false
+chrome_pgo_phase = 0
+proprietary_codecs = true
+ffmpeg_branding = "Chrome"
+enable_widevine = true
+treat_warnings_as_errors = false
+
+# Release builds: scripts/build.sh --release overrides these.
+# is_component_build = false
+# is_official_build = true

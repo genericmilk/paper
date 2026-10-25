@@ -1,0 +1,64 @@
+diff --git a/chrome/browser/ui/views/toolbar/toolbar_view.h b/chrome/browser/ui/views/toolbar/toolbar_view.h
+index 50e5462..f98b2f2 100644
+--- a/chrome/browser/ui/views/toolbar/toolbar_view.h
++++ b/chrome/browser/ui/views/toolbar/toolbar_view.h
+@@ -494,6 +494,9 @@ class ToolbarView : public views::AccessiblePaneView,
+   // Whether this toolbar has been initialized.
+   bool initialized_ = false;
+ 
++  // The toolbar is the Paper top bar (see paper::InstallPaperToolbar()).
++  bool paper_mode_ = false;
++
+   // A chevron button that indicates some toolbar elements have overflowed
+   // due to small toolbar view width. Visibility controlled by
+   // `toolbar_controller_`.
+diff --git a/chrome/browser/ui/views/toolbar/toolbar_view.cc b/chrome/browser/ui/views/toolbar/toolbar_view.cc
+index f9bb38f..ba80738 100644
+--- a/chrome/browser/ui/views/toolbar/toolbar_view.cc
++++ b/chrome/browser/ui/views/toolbar/toolbar_view.cc
+@@ -94,6 +94,7 @@
+ #include "chrome/browser/ui/views/performance_controls/battery_saver_button.h"
+ #include "chrome/browser/ui/views/performance_controls/performance_intervention_button.h"
+ #include "chrome/browser/ui/views/profiles/avatar_toolbar_button.h"
++#include "chrome/browser/ui/views/paper/paper_hooks.h"
+ #include "chrome/browser/ui/views/side_panel/side_panel.h"
+ #include "chrome/browser/ui/views/tabs/glic/glic_and_actor_buttons_container.h"
+ #include "chrome/browser/ui/views/tabs/tab_strip.h"
+@@ -1472,6 +1473,12 @@ void ToolbarView::Layout(PassKey) {
+     return;
+   }
+ 
++  // Paper's layout manager owns everything; there is no FlexLayout to drive.
++  if (paper_mode_) {
++    LayoutSuperclass<AccessiblePaneView>(this);
++    return;
++  }
++
+   if (display_mode_ == DisplayMode::kCustomTab) {
+     custom_tab_bar_->SetBounds(0, 0, width(),
+                                custom_tab_bar_->GetPreferredSize().height());
+@@ -1558,6 +1565,15 @@ views::View* ToolbarView::GetDefaultFocusableChild() {
+ }
+ 
+ void ToolbarView::InitLayout() {
++  if (display_mode_ == DisplayMode::kNormal &&
++      paper::IsPaperWindow(browser_)) {
++    paper_mode_ = true;
++    paper::InstallPaperToolbar(this, browser_view_, extensions_container_,
++                               pinned_toolbar_actions_container_,
++                               app_menu_button_);
++    return;
++  }
++
+   const int default_margin =
+       GetLayoutConstant(LayoutConstant::kToolbarIconDefaultMargin);
+   const int location_bar_margin =
+@@ -2146,7 +2162,7 @@ void ToolbarView::OnShowHomeButtonChanged() {
+ }
+ 
+ void ToolbarView::OnTouchUiChanged() {
+-  if (display_mode_ == DisplayMode::kNormal) {
++  if (display_mode_ == DisplayMode::kNormal && !paper_mode_) {
+     // Update the internal margins for touch layout.
+     // TODO(dfried): I think we can do better than this by making the touch UI
+     // code cleaner.

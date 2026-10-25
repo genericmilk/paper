@@ -1,0 +1,454 @@
+/* Copyright 2026 The Paper Authors
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+body {
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+paper-sidebar-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 6px 10px 16px;
+  box-sizing: border-box;
+}
+
+/* Essentials ---------------------------------------------------------------*/
+
+.essentials {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.essential,
+.menu {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.20), transparent 55%),
+    var(--paper-glass);
+  box-shadow:
+    inset 0 1px 0 var(--paper-rim),
+    inset 0 -1px 0 var(--paper-rim-low),
+    0 0 0 0.5px var(--paper-hairline);
+}
+
+.essential {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 48px;
+  border-radius: 14px;
+  transition: transform 260ms var(--paper-spring), background 160ms ease;
+}
+
+.essential:hover {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.26), transparent 55%),
+    var(--paper-glass-hover);
+  transform: translateY(-1px) scale(1.03);
+}
+
+.essential:active {
+  transform: scale(0.95);
+  transition-duration: 90ms;
+}
+
+.essential img {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+/* Closed essentials sit back a little; open ones get full color. */
+.essential:not([data-open]) img {
+  opacity: 0.78;
+  filter: saturate(0.85);
+}
+
+.essential[data-active] {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.30), transparent 60%),
+    color-mix(in srgb, var(--paper-accent) 22%, var(--paper-glass-hover));
+  box-shadow:
+    inset 0 1px 0 var(--paper-rim),
+    inset 0 0 0 1.5px color-mix(in srgb, var(--paper-accent) 70%, transparent),
+    0 4px 16px color-mix(in srgb, var(--paper-accent) 30%, transparent);
+}
+
+.essentials-hint {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  height: 48px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--paper-ink-faint);
+  color: var(--paper-ink-soft);
+  font-size: 12px;
+}
+
+body.dragging .essentials-hint {
+  border-color: var(--paper-accent);
+  color: var(--paper-accent);
+}
+
+/* Rows (bookmarks + tabs) --------------------------------------------------*/
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 8px 0 calc(10px + var(--depth, 0) * 14px);
+  border-radius: 10px;
+  transition: background 140ms ease, transform 220ms var(--paper-spring);
+}
+
+.row:hover {
+  background: var(--paper-row-hover);
+}
+
+.row:active {
+  transform: scale(0.985);
+}
+
+.row .favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex: none;
+  pointer-events: none;
+}
+
+.row .title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  /* Long titles fade out instead of hitting a hard ellipsis. */
+  mask-image: linear-gradient(to right, black 82%, transparent);
+  text-overflow: clip;
+}
+
+.bookmarks {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+body.dragging .bookmarks {
+  min-height: 36px;
+}
+
+.folder-icon {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--paper-ink-soft);
+}
+
+.folder-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.bm-row[data-folder] .title {
+  font-weight: 600;
+}
+
+.chevron {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: var(--paper-ink-soft);
+  transition: transform 260ms var(--paper-spring);
+}
+
+.chevron svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.8;
+}
+
+.bm-row:not([data-expanded]) .chevron {
+  transform: rotate(-90deg);
+}
+
+/* Folder bodies grow open with a springy height animation. */
+.bm-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms var(--paper-ease);
+}
+
+.bm-children[data-expanded] {
+  grid-template-rows: 1fr;
+}
+
+.bm-children-inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.bm-row[data-drop-hover] {
+  background: color-mix(in srgb, var(--paper-accent) 18%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--paper-accent) 60%,
+                                          transparent);
+  transform: scale(1.02);
+}
+
+.inline-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background: var(--paper-glass-hover);
+  border: none;
+  border-radius: 6px;
+  padding: 3px 6px;
+  outline: 1.5px solid color-mix(in srgb, var(--paper-accent) 70%, transparent);
+}
+
+/* Divider + Clear ----------------------------------------------------------*/
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 2px 6px;
+  height: 24px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--paper-ink-faint);
+  opacity: 0.6;
+}
+
+.clear {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--paper-ink-soft);
+  padding: 3px 9px;
+  border-radius: 999px;
+  transition: background 140ms ease, color 140ms ease,
+              transform 200ms var(--paper-spring);
+}
+
+.clear:hover {
+  background: var(--paper-row-hover);
+  color: var(--paper-ink);
+}
+
+.clear:active {
+  transform: scale(0.92);
+}
+
+/* Armed: the next click takes the active tab too. A little wobble says so. */
+.clear[data-armed] {
+  color: var(--paper-danger);
+  background: color-mix(in srgb, var(--paper-danger) 12%, transparent);
+  animation: wobble 420ms var(--paper-ease);
+}
+
+@keyframes wobble {
+  0% { transform: rotate(0); }
+  20% { transform: rotate(-7deg) scale(1.06); }
+  45% { transform: rotate(6deg); }
+  70% { transform: rotate(-3deg); }
+  100% { transform: rotate(0); }
+}
+
+/* Tabs ---------------------------------------------------------------------*/
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tab[data-active] {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.18), transparent 60%),
+    var(--paper-row-active);
+  box-shadow:
+    inset 0 1px 0 var(--paper-rim),
+    0 0 0 0.5px var(--paper-hairline),
+    var(--paper-shadow);
+}
+
+.tab[data-loading] .favicon {
+  animation: breathe 900ms ease-in-out infinite alternate;
+}
+
+@keyframes breathe {
+  from { opacity: 0.35; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.tab .close {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  color: var(--paper-ink-soft);
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 120ms ease, transform 200ms var(--paper-spring);
+}
+
+.tab:hover .close {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.tab .close:hover {
+  background: var(--paper-row-hover);
+  color: var(--paper-ink);
+}
+
+.tab .close svg {
+  width: 10px;
+  height: 10px;
+  stroke-width: 1.8;
+}
+
+/* Clear sweeps tabs off to the left, one after another. */
+.tab[data-sweep] {
+  animation: sweep 240ms var(--paper-ease) forwards;
+  animation-delay: var(--sweep-delay, 0ms);
+}
+
+@keyframes sweep {
+  to { transform: translateX(-110%) rotate(-2deg); opacity: 0; }
+}
+
+.new-tab {
+  color: var(--paper-ink-soft);
+}
+
+.new-tab .plus {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+}
+
+.new-tab .plus svg {
+  width: 14px;
+  height: 14px;
+}
+
+.new-tab:hover {
+  color: var(--paper-ink);
+}
+
+/* Drag and drop ------------------------------------------------------------*/
+
+.drag-source {
+  opacity: 0.3;
+}
+
+.drag-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  pointer-events: none;
+  margin: 0;
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.28), transparent 60%),
+    var(--paper-glass-strong);
+  box-shadow:
+    inset 0 1px 0 var(--paper-rim),
+    0 0 0 0.5px var(--paper-hairline),
+    0 14px 34px rgba(0, 0, 0, 0.28);
+  border-radius: 12px;
+  transition: opacity 180ms ease, scale 180ms ease;
+  will-change: transform;
+}
+
+.drag-ghost-out {
+  opacity: 0;
+  scale: 0.9;
+}
+
+.drop-line {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9;
+  pointer-events: none;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--paper-accent),
+                              var(--paper-accent-2));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--paper-accent) 60%,
+                                 transparent);
+  /* The line glides between slots instead of jumping. */
+  transition: transform 140ms var(--paper-spring), width 140ms ease,
+              height 140ms ease;
+}
+
+body.dragging,
+body.dragging * {
+  cursor: grabbing !important;
+}
+
+/* Context menu -------------------------------------------------------------*/
+
+.menu {
+  position: fixed;
+  z-index: 20;
+  min-width: 176px;
+  padding: 5px;
+  border-radius: 12px;
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.24), transparent 55%),
+    var(--paper-glass-strong);
+  backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow:
+    inset 0 1px 0 var(--paper-rim),
+    0 0 0 0.5px var(--paper-hairline),
+    0 12px 32px rgba(0, 0, 0, 0.22);
+  transform-origin: top left;
+  animation: menu-in 200ms var(--paper-spring);
+}
+
+@keyframes menu-in {
+  from { transform: scale(0.9); opacity: 0; }
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  text-align: start;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 7px;
+}
+
+.menu-item:hover {
+  background: color-mix(in srgb, var(--paper-accent) 85%, transparent);
+  color: white;
+}
+
+.menu-item[data-danger] {
+  color: var(--paper-danger);
+}
+
+.menu-item[data-danger]:hover {
+  background: var(--paper-danger);
+  color: white;
+}

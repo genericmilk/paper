@@ -1,0 +1,50 @@
+# Copyright 2026 The Paper Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//ui/webui/resources/tools/build_webui.gni")
+import("//ui/webui/webui_features.gni")
+
+assert(is_mac || is_linux || is_win)
+
+# Produces paper_resources.pak with chrome://paper-sidebar.top-chrome and
+# chrome://paper-launcher.top-chrome.
+build_webui("build") {
+  grd_prefix = "paper"
+
+  static_files = [
+    "launcher.css",
+    "launcher.html",
+    "paper_shared.css",
+    "sidebar.css",
+    "sidebar.html",
+  ]
+
+  ts_files = [
+    "browser_proxy.ts",
+    "drag.ts",
+    "launcher_app.ts",
+    "sidebar_app.ts",
+  ]
+
+  mojo_files_deps = [ "//chrome/browser/ui/webui/paper:mojo_bindings_ts__generator" ]
+  mojo_files =
+      [ "$root_gen_dir/chrome/browser/ui/webui/paper/paper.mojom-webui.ts" ]
+
+  ts_composite = true
+  ts_deps = [
+    "//third_party/lit/v3_0:build_ts",
+    "//ui/webui/resources/js:build_ts",
+    "//ui/webui/resources/mojo:build_ts",
+  ]
+
+  webui_context_type = "trusted"
+  optimize = optimize_webui
+  if (optimize) {
+    optimize_webui_host = "paper-sidebar.top-chrome"
+    optimize_webui_in_files = [
+      "launcher_app.js",
+      "sidebar_app.js",
+    ]
+  }
+}

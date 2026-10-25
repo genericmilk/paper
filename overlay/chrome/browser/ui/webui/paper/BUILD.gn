@@ -1,0 +1,16 @@
+# Copyright 2026 The Paper Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//mojo/public/tools/bindings/mojom.gni")
+
+assert(is_mac || is_linux || is_win)
+
+# The C++ for the Paper WebUIs is compiled into //chrome/browser/ui (see
+# //chrome/browser/ui/views/paper/paper.gni) because it reaches into
+# BrowserView; only the bindings live here.
+mojom("mojo_bindings") {
+  sources = [ "paper.mojom" ]
+  public_deps = [ "//url/mojom:url_mojom_gurl" ]
+  webui_module_path = "/"
+}

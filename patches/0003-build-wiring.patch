@@ -1,0 +1,65 @@
+diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
+index 238f862..1518eeb 100644
+--- a/chrome/browser/ui/BUILD.gn
++++ b/chrome/browser/ui/BUILD.gn
+@@ -9,6 +9,7 @@ import("//build/config/features.gni")
+ import("//build/config/ozone.gni")
+ import("//build/config/ui.gni")
+ import("//chrome/browser/buildflags.gni")
++import("//chrome/browser/ui/views/paper/paper.gni")
+ import("//chrome/common/features.gni")
+ import("//components/captive_portal/core/features.gni")
+ import("//components/compose/features.gni")
+@@ -3540,6 +3541,15 @@ static_library("ui") {
+ 
+     sources += get_target_outputs(":webui_name_variants")
+ 
++    # Paper's chrome: top bar pills, sidebar, launcher.
++    sources += paper_ui_sources
++    if (is_mac) {
++      sources += paper_ui_mac_sources
++    } else {
++      sources += paper_ui_non_mac_sources
++    }
++    deps += paper_ui_deps
++
+     public_deps += [ "//chrome/browser/ui/views/tabs/common:impl" ]
+ 
+     deps += [
+diff --git a/chrome/browser/resources/BUILD.gn b/chrome/browser/resources/BUILD.gn
+index 5ded1d6..559cc93 100644
+--- a/chrome/browser/resources/BUILD.gn
++++ b/chrome/browser/resources/BUILD.gn
+@@ -84,6 +84,7 @@ group("resources") {
+       "omnibox_everywhere:resources",
+       "omnibox_popup:resources",
+       "organizer_panel:resources",
++      "paper:resources",
+       "password_manager:resources",
+       "profile_internals:resources",
+       "search_engine_choice:resources",
+diff --git a/chrome/chrome_paks.gni b/chrome/chrome_paks.gni
+index 12a5e53..eb9bdd8 100644
+--- a/chrome/chrome_paks.gni
++++ b/chrome/chrome_paks.gni
+@@ -238,6 +238,7 @@ template("chrome_extra_paks") {
+         "$root_gen_dir/chrome/omnibox_everywhere_resources.pak",
+         "$root_gen_dir/chrome/omnibox_popup_resources.pak",
+         "$root_gen_dir/chrome/organizer_panel_resources.pak",
++        "$root_gen_dir/chrome/paper_resources.pak",
+         "$root_gen_dir/chrome/password_manager_resources.pak",
+         "$root_gen_dir/chrome/profile_internals_resources.pak",
+         "$root_gen_dir/chrome/search_engine_choice_resources.pak",
+diff --git a/tools/metrics/histograms/metadata/page/histograms.xml b/tools/metrics/histograms/metadata/page/histograms.xml
+index d1f9b77..73744c5 100644
+--- a/tools/metrics/histograms/metadata/page/histograms.xml
++++ b/tools/metrics/histograms/metadata/page/histograms.xml
+@@ -1092,6 +1092,8 @@ chromium-metrics-reviews@google.com.
+   <variant name=".NewTabFooter"/>
+   <variant name=".OmniboxEverywhere"/>
+   <variant name=".OmniboxPopup"/>
++  <variant name=".PaperLauncher"/>
++  <variant name=".PaperSidebar"/>
+   <variant name=".PerformanceSidePanel"/>
+   <variant name=".ReadAnythingUntrusted"/>
+   <variant name=".ReadingList"/>

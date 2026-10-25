@@ -1,0 +1,88 @@
+/* Copyright 2026 The Paper Authors
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+/* Liquid glass tokens shared by the sidebar and launcher. The pages are
+ * transparent: the window's macOS glass is the backdrop, and these surfaces
+ * are lenses sitting on it. */
+
+:root {
+  color-scheme: light dark;
+
+  --paper-ink: rgba(0, 0, 0, 0.84);
+  --paper-ink-soft: rgba(0, 0, 0, 0.52);
+  --paper-ink-faint: rgba(0, 0, 0, 0.30);
+  --paper-glass: rgba(255, 255, 255, 0.46);
+  --paper-glass-hover: rgba(255, 255, 255, 0.62);
+  --paper-glass-strong: rgba(255, 255, 255, 0.78);
+  --paper-rim: rgba(255, 255, 255, 0.90);
+  --paper-rim-low: rgba(255, 255, 255, 0.22);
+  --paper-hairline: rgba(0, 0, 0, 0.08);
+  --paper-row-hover: rgba(0, 0, 0, 0.05);
+  --paper-row-active: rgba(255, 255, 255, 0.62);
+  --paper-accent: #ff5a36;
+  --paper-accent-2: #ff9f1a;
+  --paper-accent-3: #7c5cff;
+  --paper-danger: #e5484d;
+  --paper-shadow: 0 1px 1px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.10);
+
+  --paper-spring: cubic-bezier(0.2, 1.4, 0.35, 1);
+  --paper-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper-ink: rgba(255, 255, 255, 0.92);
+    --paper-ink-soft: rgba(255, 255, 255, 0.58);
+    --paper-ink-faint: rgba(255, 255, 255, 0.32);
+    --paper-glass: rgba(255, 255, 255, 0.07);
+    --paper-glass-hover: rgba(255, 255, 255, 0.12);
+    --paper-glass-strong: rgba(40, 40, 44, 0.72);
+    --paper-rim: rgba(255, 255, 255, 0.30);
+    --paper-rim-low: rgba(255, 255, 255, 0.04);
+    --paper-hairline: rgba(0, 0, 0, 0.40);
+    --paper-row-hover: rgba(255, 255, 255, 0.06);
+    --paper-row-active: rgba(255, 255, 255, 0.12);
+    --paper-shadow: 0 1px 1px rgba(0, 0, 0, 0.30), 0 12px 32px rgba(0, 0, 0, 0.45);
+  }
+}
+
+html,
+body {
+  background: transparent;
+  margin: 0;
+  color: var(--paper-ink);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: default;
+}
+
+svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The glass material: milky body, specular sheen in the top half, bright top
+ * rim fading toward the bottom, and a hairline to separate it from busy
+ * backdrops. */
+.glass {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.22), transparent 55%),
+    var(--paper-glass);
+  box-shadow:
+    inset 0 1px 0 var(--paper-rim),
+    inset 0 -1px 0 var(--paper-rim-low),
+    0 0 0 0.5px var(--paper-hairline);
+  backdrop-filter: blur(24px) saturate(1.8);
+}

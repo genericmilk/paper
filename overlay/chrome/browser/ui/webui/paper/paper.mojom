@@ -1,0 +1,126 @@
+// Copyright 2026 The Paper Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+module paper.mojom;
+
+import "url/mojom/url.mojom";
+
+// Maps to NSHapticFeedbackPattern on macOS; no-op elsewhere.
+enum Haptic {
+  kGeneric,
+  kAlignment,
+  kLevelChange,
+};
+
+struct Tab {
+  int32 id;
+  string title;
+  url.mojom.Url url;
+  bool active;
+  bool loading;
+};
+
+struct Essential {
+  string id;
+  string title;
+  url.mojom.Url url;
+  // Whether a pinned tab currently backs this essential.
+  bool open;
+  bool active;
+};
+
+struct BookmarkNode {
+  int64 id;
+  string title;
+  // Unset for folders.
+  url.mojom.Url? url;
+  array<BookmarkNode> children;
+};
+
+struct SidebarState {
+  array<Essential> essentials;
+  // Children of the bookmark bar node.
+  array<BookmarkNode> bookmarks;
+  // Unpinned tabs, in tab strip order.
+  array<Tab> tabs;
+  // True after the first Clear, until anything about the tabs changes. The
+  // next Clear then also closes the active tab.
+  bool clear_armed;
+};
+
+interface SidebarPageHandlerFactory {
+  CreatePageHandler(pending_remote<SidebarPage> page,
+                    pending_receiver<SidebarPageHandler> handler);
+};
+
+interface SidebarPageHandler {
+  GetState() => (SidebarState state);
+
+  ActivateTab(int32 tab_id);
+  CloseTab(int32 tab_id);
+  // `to_index` counts unpinned tabs only.
+  MoveTab(int32 tab_id, int32 to_index);
+  ClearTabs();
+  NewTab();
+
+  OpenEssential(string id);
+  AddEssentialFromTab(int32 tab_id, int32 index);
+  RemoveEssential(string id);
+  MoveEssential(string id, int32 to_index);
+
+  OpenBookmark(int64 id);
+  BookmarkTab(int32 tab_id, int64 parent_id, int32 index);
+  MoveBookmark(int64 id, int64 parent_id, int32 index);
+  AddBookmarkFolder(int64 parent_id, string title);
+  RenameBookmark(int64 id, string title);
+  RemoveBookmark(int64 id);
+
+  PerformHaptic(Haptic pattern);
+};
+
+interface SidebarPage {
+  StateChanged(SidebarState state);
+};
+
+enum LauncherMode {
+  // Cmd+T / "+": the choice opens in a new foreground tab.
+  kNewTab,
+  // Domain pill / Cmd+L: the choice navigates the active tab.
+  kEditCurrent,
+};
+
+enum MatchKind {
+  kTab,
+  kHistory,
+  kUrl,
+  kSearch,
+};
+
+struct LauncherMatch {
+  MatchKind kind;
+  string title;
+  string subtitle;
+  url.mojom.Url url;
+  // Only meaningful for kTab.
+  int32 tab_id;
+};
+
+interface LauncherPageHandlerFactory {
+  CreatePageHandler(pending_remote<LauncherPage> page,
+                    pending_receiver<LauncherPageHandler> handler);
+};
+
+interface LauncherPageHandler {
+  Query(string text);
+  // `index` is into the most recent ResultsChanged() list.
+  OpenMatch(int32 index);
+  Dismiss();
+  PerformHaptic(Haptic pattern);
+};
+
+interface LauncherPage {
+  // Sent every time the launcher is shown; the page resets and focuses.
+  Shown(LauncherMode mode, string initial_text);
+  ResultsChanged(string query, array<LauncherMatch> matches);
+};

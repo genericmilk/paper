@@ -1,0 +1,133 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.h b/chrome/browser/ui/views/frame/browser_view.h
+index 6c4807b..0b8b33e 100644
+--- a/chrome/browser/ui/views/frame/browser_view.h
++++ b/chrome/browser/ui/views/frame/browser_view.h
+@@ -267,6 +267,7 @@ class BrowserView : public BrowserWindow,
+   views::View* main_shadow_overlay() { return main_shadow_overlay_; }
+ 
+   SidePanel* side_panel() { return side_panel_; }
++  views::View* paper_sidebar() { return paper_sidebar_; }
+ 
+   MultiContentsView* multi_contents_view() { return multi_contents_view_; }
+ 
+@@ -1243,6 +1244,9 @@ class BrowserView : public BrowserWindow,
+   // should exist if and only if the side_panel_coordinator is created.
+   raw_ptr<SidePanel> side_panel_ = nullptr;
+ 
++  // Paper's sidebar column; see //chrome/browser/ui/views/paper.
++  raw_ptr<views::View> paper_sidebar_ = nullptr;
++
+   // The handler responsible for showing autofill bubbles.
+   std::unique_ptr<autofill::AutofillBubbleHandler> autofill_bubble_handler_;
+ 
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index b68f089..0ecd401 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -209,6 +209,7 @@
+ #include "chrome/browser/ui/views/sharing/sharing_dialog_view.h"
+ #include "chrome/browser/ui/views/sharing_hub/screenshot/screenshot_captured_bubble.h"
+ #include "chrome/browser/ui/views/sharing_hub/sharing_hub_bubble_view_impl.h"
++#include "chrome/browser/ui/views/paper/paper_hooks.h"
+ #include "chrome/browser/ui/views/side_panel/side_panel.h"
+ #include "chrome/browser/ui/views/side_panel/side_panel_animation_content_view.h"
+ #include "chrome/browser/ui/views/side_panel/side_panel_coordinator.h"
+@@ -975,6 +976,10 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
+ 
+   side_panel_ = AddChildView(std::make_unique<SidePanel>(this));
+ 
++  if (auto paper_sidebar = paper::CreatePaperSidebar(this)) {
++    paper_sidebar_ = AddChildView(std::move(paper_sidebar));
++  }
++
+   // Tabstrip comes basically last because it should be before toolbar in the
+   // focus order but also needs to paint on top of everything.
+   horizontal_tab_strip_region_view_ =
+@@ -1156,6 +1161,7 @@ BrowserView::~BrowserView() {
+   vertical_tab_strip_bottom_corner_ = nullptr;
+   organizer_tray_ = nullptr;
+   side_panel_ = nullptr;
++  paper_sidebar_ = nullptr;
+ 
+ #if BUILDFLAG(IS_MAC)
+   tab_overlay_view_ = nullptr;
+@@ -5116,6 +5122,7 @@ void BrowserView::AddedToWidget() {
+   layout_views.infobar_container = infobar_container_;
+   layout_views.multi_contents_view = multi_contents_view_;
+   layout_views.side_panel = side_panel_;
++  layout_views.paper_sidebar = paper_sidebar_;
+   layout_views.top_container_separator = top_container_separator_;
+   // LINT.ThenChange(//chrome/browser/ui/views/frame/layout/browser_view_layout.h:BrowserViewLayoutViews)
+ 
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_layout.h b/chrome/browser/ui/views/frame/layout/browser_view_layout.h
+index c84c47a..b7e3b78 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_layout.h
++++ b/chrome/browser/ui/views/frame/layout/browser_view_layout.h
+@@ -79,6 +79,8 @@ struct BrowserViewLayoutViews {
+   raw_ptr<MultiContentsView> multi_contents_view = nullptr;
+   raw_ptr<SidePanel> side_panel = nullptr;
+   raw_ptr<SidePanelAnimationContentView> side_panel_animation_content = nullptr;
++  // Paper's left column (essentials, bookmarks, tabs). Null when Paper is off.
++  raw_ptr<views::View> paper_sidebar = nullptr;
+ 
+   // The contents separator used for when the top container is overlaid.
+   // Note: when `SideBySide` feature is disabled, this separator is also
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+index 389c6f8..0f25f9d 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
+@@ -34,6 +34,7 @@
+ #include "chrome/browser/ui/views/frame/layout/browser_view_layout_impl.h"
+ #include "chrome/browser/ui/views/frame/layout/browser_view_layout_params.h"
+ #include "chrome/browser/ui/views/frame/multi_contents_view.h"
++#include "chrome/browser/ui/views/paper/paper_hooks.h"
+ #include "chrome/browser/ui/views/frame/shadow_frame_view.h"
+ #include "chrome/browser/ui/views/frame/tab_strip_region_view.h"
+ #include "chrome/browser/ui/views/frame/vertical_tab_strip_background_blur_backdrop.h"
+@@ -988,6 +989,21 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+     }
+   }
+ 
++  // Paper's sidebar sits below the top bar and pushes the page aside rather
++  // than covering it. Its width animates from 0 when toggled.
++  if (IsParentedTo(views().paper_sidebar, views().browser_view)) {
++    const int sidebar_width =
++        paper::GetPaperSidebarVisibleWidth(views().paper_sidebar);
++    gfx::Rect sidebar_bounds;
++    if (sidebar_width > 0) {
++      sidebar_bounds = gfx::Rect(params.visual_client_area.x(),
++                                 params.visual_client_area.y(), sidebar_width,
++                                 params.visual_client_area.height());
++      params.InsetHorizontal(sidebar_width, /*leading=*/true);
++    }
++    layout.AddChild(views().paper_sidebar, sidebar_bounds, sidebar_width > 0);
++  }
++
+   // Lay out the main area background.
+   ProposedLayout* main_background_layout = nullptr;
+   if (IsParentedTo(views().main_background_region, views().browser_view)) {
+diff --git a/chrome/browser/ui/views/frame/layout/browser_view_layout_delegate_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_layout_delegate_impl.cc
+index 162cb04..c223edb 100644
+--- a/chrome/browser/ui/views/frame/layout/browser_view_layout_delegate_impl.cc
++++ b/chrome/browser/ui/views/frame/layout/browser_view_layout_delegate_impl.cc
+@@ -22,6 +22,7 @@
+ #include "chrome/browser/ui/views/frame/browser_widget.h"
+ #include "chrome/browser/ui/views/frame/glass_frame_service.h"
+ #include "chrome/browser/ui/views/infobars/infobar_container_view.h"
++#include "chrome/browser/ui/views/paper/paper_hooks.h"
+ #include "chrome/browser/ui/views/tabs/organizer/organizer_panel_host.h"
+ #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
+ #include "chrome/browser/ui/views/web_apps/frame_toolbar/web_app_frame_toolbar_view.h"
+@@ -53,6 +54,12 @@ BrowserViewLayoutDelegateImpl::~BrowserViewLayoutDelegateImpl() = default;
+ 
+ BrowserViewLayoutDelegate::TabStripType
+ BrowserViewLayoutDelegateImpl::GetTabStripType() const {
++  // Paper replaces every tab strip with its sidebar. With no tab strip the
++  // toolbar moves up beside the traffic lights and becomes the Paper top bar.
++  if (paper::IsPaperWindow(browser_view_->browser())) {
++    return TabStripType::kNone;
++  }
++
+   // Can there be a tabstrip at all right now?
+   if (!browser_view_->ShouldDrawTabStrip()) {
+     return TabStripType::kNone;

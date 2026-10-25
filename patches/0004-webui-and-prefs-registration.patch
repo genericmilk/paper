@@ -1,0 +1,60 @@
+diff --git a/chrome/browser/ui/webui/chrome_web_ui_configs.cc b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
+index 139fece..9a8515d 100644
+--- a/chrome/browser/ui/webui/chrome_web_ui_configs.cc
++++ b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
+@@ -136,6 +136,7 @@
+ #include "chrome/browser/ui/webui/signin/sync_confirmation_ui.h"
+ #include "chrome/browser/ui/webui/support_tool/support_tool_ui.h"
+ #include "chrome/browser/ui/webui/system/system_info_ui.h"
++#include "chrome/browser/ui/views/paper/paper_hooks.h"
+ #include "chrome/browser/ui/webui/tab_search/tab_search_ui.h"
+ #include "chrome/browser/ui/webui/user_education_internals/user_education_internals_ui.h"
+ #include "chrome/browser/ui/webui/web_app_internals/web_app_internals_ui.h"
+@@ -404,6 +405,7 @@ void RegisterChromeWebUIConfigs() {
+   map.AddWebUIConfig(std::make_unique<SystemInfoUIConfig>());
+   map.AddWebUIConfig(std::make_unique<tabs::TabGroupHomeUIConfig>());
+   map.AddWebUIConfig(std::make_unique<TabSearchUIConfig>());
++  paper::RegisterWebUIConfigs(map);
+   map.AddWebUIConfig(std::make_unique<TabsFromOtherDevicesUIConfig>());
+   map.AddWebUIConfig(std::make_unique<TermsUIConfig>());
+   map.AddWebUIConfig(std::make_unique<UserEducationInternalsUIConfig>());
+diff --git a/chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc b/chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc
+index 378e1a6..99fc293 100644
+--- a/chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc
++++ b/chrome/browser/chrome_browser_interface_binders_webui_parts_desktop.cc
+@@ -87,6 +87,7 @@
+ #include "chrome/browser/ui/webui/side_panel/reading_list/reading_list.mojom.h"
+ #include "chrome/browser/ui/webui/side_panel/reading_list/reading_list_ui.h"
+ #include "chrome/browser/ui/webui/side_panel/tabs_from_other_devices/tabs_from_other_devices_side_panel_ui.h"
++#include "chrome/browser/ui/views/paper/paper_hooks.h"
+ #include "chrome/browser/ui/webui/tab_search/tab_search.mojom.h"
+ #include "chrome/browser/ui/webui/tab_search/tab_search_ui.h"
+ #include "chrome/browser/ui/webui/user_education_internals/user_education_internals_ui.h"
+@@ -598,6 +599,7 @@ void PopulateChromeWebUIFrameInterfaceBrokersTrustedPartsDesktop(
+   registry.ForWebUI<TabSearchUI>()
+       .Add<tab_search::mojom::PageHandlerFactory>()
+       .Add<tab_search::mojom::SearchHandler>();
++  paper::PopulateWebUIInterfaceBrokers(registry);
+   registry.ForWebUI<OrganizerPanelUI>()
+       .Add<organizer_panel::mojom::PageHandlerFactory>()
+       .Add<tab_search::mojom::PageHandlerFactory>()
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 35b0268..a315746 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -329,6 +329,7 @@
+ #include "chrome/browser/ui/webui/certificate_manager/certificate_manager_handler.h"
+ #include "chrome/browser/ui/webui/history/foreign_session_handler.h"
+ #include "chrome/browser/ui/webui/settings/settings_ui.h"
++#include "chrome/browser/ui/views/paper/paper_features.h"
+ #include "chrome/browser/ui/webui/tab_search/tab_search_prefs.h"
+ #include "chrome/browser/upgrade_detector/upgrade_detector.h"
+ #include "chrome/browser/user_education/browser_user_education_storage_service.h"
+@@ -2121,6 +2122,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+   StartupBrowserCreator::RegisterProfilePrefs(registry);
+   tab_groups::saved_tab_groups::prefs::RegisterProfilePrefs(registry);
+   tab_search_prefs::RegisterProfilePrefs(registry);
++  paper::RegisterProfilePrefs(registry);
+   toolbar::RegisterProfilePrefs(registry);
+ #endif  // BUILDFLAG(IS_ANDROID)
+ 

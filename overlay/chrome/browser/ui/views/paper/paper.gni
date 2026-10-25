@@ -1,0 +1,45 @@
+# Copyright 2026 The Paper Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Paper's native chrome. Imported by //chrome/browser/ui/BUILD.gn and compiled
+# straight into the "ui" target: these files reach into BrowserView,
+# ToolbarView and the WebUI top-chrome helpers, which all live there, so a
+# separate source_set would only add circular-include allowances.
+
+paper_ui_sources = [
+  "//chrome/browser/ui/views/paper/paper_features.cc",
+  "//chrome/browser/ui/views/paper/paper_features.h",
+  "//chrome/browser/ui/views/paper/paper_glass.cc",
+  "//chrome/browser/ui/views/paper/paper_glass.h",
+  "//chrome/browser/ui/views/paper/paper_haptics.h",
+  "//chrome/browser/ui/views/paper/paper_hooks.cc",
+  "//chrome/browser/ui/views/paper/paper_hooks.h",
+  "//chrome/browser/ui/views/paper/paper_launcher_view.cc",
+  "//chrome/browser/ui/views/paper/paper_launcher_view.h",
+  "//chrome/browser/ui/views/paper/paper_sidebar_view.cc",
+  "//chrome/browser/ui/views/paper/paper_sidebar_view.h",
+  "//chrome/browser/ui/views/paper/paper_toolbar.cc",
+  "//chrome/browser/ui/views/paper/paper_toolbar.h",
+  "//chrome/browser/ui/views/paper/paper_window_controller.cc",
+  "//chrome/browser/ui/views/paper/paper_window_controller.h",
+  "//chrome/browser/ui/webui/paper/paper_launcher_handler.cc",
+  "//chrome/browser/ui/webui/paper/paper_launcher_handler.h",
+  "//chrome/browser/ui/webui/paper/paper_launcher_ui.cc",
+  "//chrome/browser/ui/webui/paper/paper_launcher_ui.h",
+  "//chrome/browser/ui/webui/paper/paper_sidebar_handler.cc",
+  "//chrome/browser/ui/webui/paper/paper_sidebar_handler.h",
+  "//chrome/browser/ui/webui/paper/paper_sidebar_ui.cc",
+  "//chrome/browser/ui/webui/paper/paper_sidebar_ui.h",
+]
+
+paper_ui_mac_sources =
+    [ "//chrome/browser/ui/views/paper/paper_haptics_mac.mm" ]
+
+paper_ui_non_mac_sources =
+    [ "//chrome/browser/ui/views/paper/paper_haptics_stub.cc" ]
+
+paper_ui_deps = [
+  "//chrome/browser/resources/paper:resources",
+  "//chrome/browser/ui/webui/paper:mojo_bindings",
+]
